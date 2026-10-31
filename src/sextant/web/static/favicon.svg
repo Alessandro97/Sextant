@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#5b9dd9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Sextant">
+  <title>Sextant</title>
+  <!-- the angle between a star and the horizon -->
+  <path d="M2.9,19.4 L21,19.4" stroke-width="1.5" opacity=".8"/>
+  <path d="M18.81,15.53 A13.4,13.4 0 0 0 10.92,6.62"/>
+  <path d="M6.4,3.8000000000000003 L6.4,8.6 M4.0,6.2 L8.8,6.2 M4.960000000000001,4.76 L7.84,7.640000000000001 M7.84,4.76 L4.960000000000001,7.640000000000001" stroke-width="1.2"/>
+  <circle cx="19.2" cy="19.4" r="1.25" fill="#5b9dd9" stroke="none"/>
+</svg>

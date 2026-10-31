@@ -1,0 +1,25 @@
+# brainstorming session artifacts (mockups persist here, not worth versioning)
+.superpowers/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# secrets — the app reads ANTHROPIC_API_KEY from here
+.env
+.env.*
+!.env.example
+
+# node (build-time only)
+node_modules/
+dist/
+
+# local paper store, if ever symlinked into the repo
+blobs/
+*.db

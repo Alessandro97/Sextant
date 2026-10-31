@@ -1,0 +1,5 @@
+# What trying the demo writes beside it; the demo itself is the three PDFs.
+refs/*
+!refs/example2021beds.pdf
+!refs/placeholder2019mulch.pdf
+!refs/testwell2022compost.pdf

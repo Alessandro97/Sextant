@@ -1,0 +1,1480 @@
+/* Sextant — a reading surface.
+ *
+ * The manuscript and the cited paper are the content; everything else is
+ * apparatus and should recede. Hence one accent colour, four status hues at
+ * low saturation, and chrome that stays grey until you touch it. */
+
+/* Inter, bundled rather than fetched: the viewer works with no network
+   at all, and a UI that reflows when a font server is unreachable is a
+   worse trade than 456 KB on disk. SIL Open Font License 1.1 -- see
+   static/fonts/LICENSE. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/inter-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/inter-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/static/fonts/inter-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/static/fonts/inter-500-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/static/fonts/inter-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/static/fonts/inter-600-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/fonts/inter-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/static/fonts/inter-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  --ink:        #0f172a;
+  --ink-soft:   #334155;
+  --ink-faint:  #64748b;   /* 4.55:1 on --canvas */
+  --line:       #e2e8f0;
+  --line-soft:  #f1f5f9;
+  --surface:    #ffffff;
+  --canvas:     #f8fafc;
+  --raised:     #fbfdff;
+
+  --accent:      #2563eb;
+  --accent-soft: #e7f1fe;  /* lightened: the accent read 4.24:1 on #dbeafe */
+  --accent-line: #a8c7fa;
+  --accent-deep: #1556e5;  /* hover; white on it is 6.0:1 */
+
+  --ok:      #15803d;
+  --ok-bg:   #dcfce7;
+  --ok-line: #a7e5bd;
+  --warn:    #9f6107;      /* darkened: #a16207 read 4.42:1 on its own ground */
+  --warn-bg: #fef3c7;
+  --warn-line: #eed38a;
+  --bad:     #b91c1c;
+  --bad-bg:  #fee2e2;
+  --bad-line: #f2bcbc;
+  --mute:    #5b6676;
+  --mute-bg: #eef2f7;
+
+  /* The command bar is dark so the reading surfaces below it read as paper.
+     Everything in it is chrome; nothing in it is content. */
+  --bar:        #1e293b;
+  --bar-line:   #334155;
+  --bar-ink:    #e2e8f0;
+  --bar-faint:  #94a3b8;
+  --glow:       #60a5fa;
+
+  --r-sm: 7px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-2: 0 2px 8px rgba(15, 23, 42, .08);
+  --shadow-3: 0 12px 40px rgba(15, 23, 42, .16);
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--canvas);
+  font: 400 14px/1.55 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+code, .path { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+/* -------------------------------------------------------------- header */
+
+header {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .8rem;
+  padding: .55rem 1.1rem;
+  background: var(--bar);
+  border-bottom: 1px solid var(--bar-line);
+  color: var(--bar-ink);
+  z-index: 5;
+}
+
+/* The wordmark doubles as Home. */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 0;
+  background: none;
+  padding: .18rem .45rem .18rem .3rem;
+  margin-left: -.3rem;
+  border-radius: var(--r-sm);
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  transition: background .12s;
+}
+.brand::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--glow);
+  box-shadow: 0 0 9px rgba(96, 165, 250, .85);
+  transform: rotate(45deg);
+  /* The mark lights rather than moves: it is in the bar, which stays put. */
+  animation: wake .6s cubic-bezier(.2, .7, .3, 1) both;
+}
+.brand:hover { background: #24324a; }
+
+/* The manuscript names itself over the manuscript, exactly as the cited paper
+   does over the cited paper. In the top bar it was chrome competing with
+   chrome; here it labels the thing it belongs to, so it is styled as that
+   pane's title and not as a chip. */
+#filename {
+  font-size: .88rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#filename:empty { display: none; }
+
+/* A segmented control, because the three are one choice and the cost between
+   them differs by roughly ten times -- worth seeing which one is in force. */
+.effort { border: 1px solid #3b4c69; border-radius: var(--r-sm); overflow: hidden; }
+.effort:not([hidden]) { display: inline-flex; }
+.effort button {
+  border: 0;
+  border-radius: 0;
+  padding: .22rem .55rem;
+  font-size: .74rem;
+  background: transparent;
+  color: var(--bar-faint);
+}
+.effort button + button { border-left: 1px solid #3b4c69; }
+.effort button:hover { background: #24324a; color: var(--bar-ink); }
+.effort button[aria-pressed="true"] { background: var(--glow); color: #08131d; font-weight: 600; }
+
+.counts, .status { font-size: .76rem; color: var(--bar-faint); }
+.counts {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: -.01em;
+}
+.status { margin-left: auto; text-align: right; }
+#assessing::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: .35rem;
+  border-radius: 50%;
+  background: var(--glow);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .32rem;
+  font-size: .76rem;
+  color: var(--bar-faint);
+  white-space: nowrap;
+}
+.toggle input { accent-color: var(--glow); }
+/* It sits on the "Ready to open" card now rather than in the bar, so it takes
+   the card's ink and not the bar's, and lines up with the labels above it. */
+#setup .toggle { color: var(--ink-soft); font-size: .8rem; margin-top: .55rem; }
+header .or { display: none; }
+
+/* Controls sitting on the dark bar. */
+header .filebtn, header button:not(.brand) {
+  background: #24324a;
+  border-color: #3b4c69;
+  color: var(--bar-ink);
+}
+header .filebtn:hover, header button:not(.brand):hover {
+  background: #2d3f5e;
+  border-color: #4a5f85;
+  color: #fff;
+}
+header #browse-open {
+  background: var(--glow);
+  border-color: var(--glow);
+  color: #08131d;
+  font-weight: 600;
+}
+header #browse-open:hover { background: #8cc0f7; border-color: #8cc0f7; }
+
+/* buttons ---------------------------------------------------------------- */
+
+.filebtn, header button, #rail button, #setup .row button,
+#browse-jump button, .convert-note button, #refs-actions button,
+#browser .row button {
+  border: 1px solid var(--line);
+  background: var(--raised);
+  border-radius: var(--r-sm);
+  padding: .32rem .7rem;
+  font-size: .82rem;
+  transition: background .12s, border-color .12s;
+}
+.filebtn:hover, header button:hover, #rail button:hover, #browse-jump button:hover,
+.convert-note button:hover, #refs-actions button:hover, #browser .row button:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+button:disabled { opacity: .45; cursor: default; }
+
+/* Primary actions.
+ *
+ * Written to outrank the generic button rule above. "#setup .row button" is
+ * one id, one class and one element; a bare "#setup-go" is one id and loses
+ * to it -- which left the Go button with white text on the generic near-white
+ * background, invisible. */
+#browse-open,
+#setup .row #setup-go {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 550;
+}
+#browse-open:hover,
+#setup .row #setup-go:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+.filebtn.small { font-size: .78rem; padding: .24rem .55rem; }
+
+/* -------------------------------------------------------------- layout */
+
+main { flex: 1 1 auto; min-height: 0; display: flex; }
+
+#reader-pane {
+  flex: 1 1 auto;
+  min-width: 16rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#reader {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, .05) 1px, transparent 0)
+    0 0 / 22px 22px,
+    var(--canvas);
+  padding: 1.1rem 0 4rem;
+}
+.pad { padding: 1rem 1.5rem; }
+
+/* Stages: the panel arrives with a manuscript, the split with a reference. */
+#rail, #splitter { display: none; }
+body.has-manuscript #rail { display: flex; }
+body.cited-open #splitter { display: block; }
+body:not(.cited-open) #cited { display: none; }
+/* The empty page is two things stacked: what the tool does, then the way to
+   hand it something. The preview is not part of the upload and does not sit
+   inside it. */
+body:not(.has-manuscript) #reader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.9rem;
+  padding: 1.5rem 0;
+}
+
+/* ------------------------------------------------------------ dropzone */
+
+.dropzone {
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  width: min(38rem, 88%);
+  padding: 3.4rem 2.6rem;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  transition: border-color .15s, box-shadow .15s;
+  animation: settle .55s cubic-bezier(.2, .7, .3, 1) .16s both;  /* see "opening" */
+}
+.dropzone.over { border-color: var(--accent); box-shadow: var(--shadow-3); }
+.dropzone .hint { font-size: .86rem; line-height: 1.6; }
+
+/* The one thing to do on an empty page, at the size of being the only thing
+   to do. The bar's own Open button is put away here rather than saying it
+   twice -- it comes back once a manuscript is on screen, where it is how you
+   reach for a different one. */
+.bigbtn {
+  display: block;
+  margin: .4rem auto 1.4rem;
+  padding: 1rem 2.9rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  transition: background .12s, box-shadow .12s;
+}
+.bigbtn:hover { background: var(--accent-deep); border-color: var(--accent-deep); box-shadow: var(--shadow-3); }
+body:not(.has-manuscript) #browse-open { display: none; }
+
+/* --------------------------------------------------------------- opening */
+
+/* The empty page settles in rather than arriving fully formed: the card, then
+   the one thing to do, then the small print. It plays on load and again on
+   Home, which rebuilds this markup from EMPTY_READER, so the way back to the
+   start looks like a beginning too.
+
+   Purely decorative -- none of it is feedback about anything -- so it is the
+   first thing to go for a reader who has asked for less motion. */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes wake {
+  from { opacity: 0; transform: rotate(45deg) scale(.35); }
+  to   { opacity: 1; transform: rotate(45deg) scale(1); }
+}
+
+.dropzone .bigbtn        { animation: settle .5s cubic-bezier(.2, .7, .3, 1) .26s both; }
+.dropzone p:nth-of-type(1) { animation: settle .5s cubic-bezier(.2, .7, .3, 1) .36s both; }
+.dropzone p:nth-of-type(2) { animation: settle .5s cubic-bezier(.2, .7, .3, 1) .42s both; }
+/* The demonstration. One claim, one arc, one passage found -- the whole of
+   what Sextant promises, on a loop. Every colour is the one the reader will
+   meet on a real page: the accent for the citation, and the same amber as a
+   located highlight, so the homepage is not selling something else. */
+.preview {
+  margin: 0;
+  width: min(48rem, 94%);
+  text-align: center;
+  animation: settle .55s cubic-bezier(.2, .7, .3, 1) both;
+}
+.demo {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  overflow: visible;
+}
+.demo-sheet { fill: var(--raised); stroke: var(--line); stroke-width: 1; }
+.demo-line  { fill: var(--line); }
+.demo-claim { fill: var(--ink-faint); }
+.demo-found { fill: var(--ink-soft); }
+.demo-marker { fill: var(--line); animation: demo-cite 5.2s ease-in-out infinite; }
+.demo-arc {
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 1;
+  stroke-linecap: round;
+  animation: demo-reach 5.2s ease-in-out infinite;
+}
+.demo-spark { fill: var(--glow); opacity: 0; }
+.demo-hit {
+  fill: rgba(255, 206, 0, .34);
+  stroke: rgba(196, 141, 0, .85);
+  stroke-width: 1.2;
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: demo-land 5.2s ease-in-out infinite;
+}
+
+@keyframes demo-cite {
+  0%, 6%    { fill: var(--line); }
+  12%, 88%  { fill: var(--accent); }
+  100%      { fill: var(--line); }
+}
+@keyframes demo-reach {
+  0%, 12%   { stroke-dashoffset: 1; opacity: 0; }
+  15%       { opacity: 1; }
+  42%, 88%  { stroke-dashoffset: 0; opacity: 1; }
+  100%      { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes demo-land {
+  0%, 42%   { opacity: 0; transform: scaleX(.05); }
+  55%, 88%  { opacity: 1; transform: scaleX(1); }
+  100%      { opacity: 0; transform: scaleX(1); }
+}
+@keyframes demo-travel {
+  0%, 12%   { offset-distance: 0%; opacity: 0; }
+  15%       { opacity: 1; }
+  42%       { offset-distance: 100%; opacity: 1; }
+  50%, 100% { offset-distance: 100%; opacity: 0; }
+}
+/* Only where the path can actually be followed; elsewhere the arc alone
+   carries it and no dot is left stranded at the origin. */
+@supports (offset-path: path("M0 0 L1 1")) {
+  .demo-spark {
+    offset-path: path("M160 73 C 200 14, 254 14, 294 73");   /* same d as the arc */
+    animation: demo-travel 5.2s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropzone, .dropzone .bigbtn,
+  .dropzone p:nth-of-type(1), .dropzone p:nth-of-type(2),
+  .brand::before, .preview, .demo-marker, .demo-arc, .demo-hit, .demo-spark {
+    animation: none;
+  }
+  /* Frozen on the answer: the arc drawn and the passage found. Still says
+     what the tool does, without anything moving. */
+  .demo-arc { stroke-dashoffset: 0; opacity: 1; }
+  .demo-marker { fill: var(--accent); }
+  .demo-hit { opacity: 1; transform: none; }
+  .demo-spark { display: none; }
+}
+
+/* ----------------------------------------------------------- pdf pages */
+
+.page-wrap {
+  position: relative;
+  margin: 0 auto 1.1rem;
+  width: min(940px, 94%);
+  background: var(--surface);
+  border-radius: 3px;
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+.page-wrap img { display: block; width: 100%; height: auto; }
+.page-wrap.placeholder,
+.page-wrap.failed { display: flex; align-items: center; justify-content: center; }
+.page-wrap.placeholder .loading-note {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .6rem;
+  color: var(--ink-faint);
+  font-size: .8rem;
+}
+.page-wrap.failed .loading-note {
+  color: var(--bad);
+  font-size: .84rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* citation markers -------------------------------------------------------- */
+
+.marker {
+  position: absolute;
+  cursor: pointer;
+  border-radius: 2px;
+  outline: 2px solid transparent;
+  transition: filter .12s, outline-color .12s;
+}
+.marker:hover { filter: brightness(.92) saturate(1.4); }
+.m-verified  { background: rgba(31, 122, 61, .26);  box-shadow: 0 0 0 1px rgba(31, 122, 61, .55); }
+.m-not-found { background: rgba(165, 34, 34, .26);  box-shadow: 0 0 0 1px rgba(165, 34, 34, .6); }
+.m-no-source { background: rgba(107, 116, 128, .2); box-shadow: 0 0 0 1px rgba(107, 116, 128, .45); }
+.m-no-claim  { background: rgba(47, 93, 138, .11);  box-shadow: 0 0 0 1px rgba(47, 93, 138, .28); }
+.marker.selected { outline-color: var(--ink); }
+@keyframes flash { 0%, 100% { outline-color: transparent; } 40% { outline-color: var(--ink); } }
+.marker.flash { animation: flash .5s ease-in-out 3; }
+
+.hl {
+  position: absolute;
+  background: rgba(251, 191, 36, .38);
+  outline: 1.5px solid rgba(180, 120, 10, .9);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------- cited paper */
+
+#cited {
+  flex: 0 0 var(--cited-width, 46%);
+  min-width: 16rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas);
+}
+#cited-bar {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  padding: .5rem .85rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+#cited-bar .spacer { flex: 1; }
+#cited-title {
+  font-size: .88rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#cited-sub, #cited-page { font-size: .76rem; color: var(--ink-faint); white-space: nowrap; }
+#cited-close {
+  border: 0;
+  background: none;
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: .1rem .35rem;
+  color: var(--ink-faint);
+  border-radius: var(--r-sm);
+}
+#cited-close:hover { background: var(--mute-bg); color: var(--ink); }
+#cited-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(22, 25, 29, .045) 1px, transparent 0)
+    0 0 / 22px 22px,
+    var(--canvas);
+}
+#cited-body .page-wrap { width: 100%; margin: 0 auto 1rem; }
+
+/* splitters --------------------------------------------------------------- */
+
+#splitter {
+  flex: 0 0 9px;
+  cursor: col-resize;
+  background: var(--line);
+  position: relative;
+  touch-action: none;
+  transition: background .12s;
+}
+/* A generous grab area: the visible divider is thin, the target is not. */
+#splitter::before { content: ""; position: absolute; inset: 0 -6px; z-index: 2; }
+#splitter::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 2px; height: 26px;
+  margin: -13px 0 0 -1px;
+  border-radius: 1px;
+  background: var(--ink-faint);
+  opacity: .5;
+}
+#splitter:hover, #splitter.dragging { background: #c2d4e5; }
+#splitter:hover::after, #splitter.dragging::after { background: var(--accent); opacity: 1; }
+body.resizing { cursor: col-resize; user-select: none; }
+body.resizing img { pointer-events: none; }
+
+/* ---------------------------------------------------------------- rail */
+
+#rail {
+  flex: 0 0 26rem;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+}
+#rail, #rail * { min-width: 0; }
+
+#tabs { display: flex; border-bottom: 1px solid var(--line); background: var(--raised); }
+#tabs button {
+  flex: 1;
+  border: 0;
+  background: none;
+  padding: .6rem .3rem;
+  font-size: .82rem;
+  color: var(--ink-faint);
+  border-bottom: 2px solid transparent;
+  transition: color .12s, border-color .12s;
+}
+#tabs button:hover { color: var(--ink-soft); }
+#tabs button.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 550; }
+
+.tab {
+  display: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .85rem 1rem 2.5rem;
+}
+.tab.active { display: block; }
+
+h1 { font-size: 1.05rem; margin: 0; }
+h2 {
+  font-size: .7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--ink-faint);
+  margin: 1.1rem 0 .4rem;
+}
+h3 { font-size: .9rem; margin: .2rem 0 .4rem; }
+
+/* library ----------------------------------------------------------------- */
+
+.folder { margin: 0 0 .6rem; }
+/* The name of the folder and the button that changes it share a line, so the
+   path below keeps the full width it needs to wrap. */
+.folder-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+}
+/* Quieter than the actions below it: this changes a setting, it does not do
+   the work. Needs the id to outrank the shared `#rail button` sizing. */
+#rail .folder-head button {
+  flex: 0 0 auto;
+  font-size: .72rem;
+  padding: .14rem .45rem;
+}
+.folder .path {
+  display: block;
+  margin-top: .2rem;
+  padding: .35rem .45rem;
+  font-size: .7rem;
+  line-height: 1.4;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  background: var(--mute-bg);
+  border-radius: var(--r-sm);
+  color: var(--ink-soft);
+  transition: background .12s;
+}
+.folder .path:hover { background: var(--accent-soft); color: var(--ink); }
+
+/* Which documents, not how many. The names wrap rather than truncate: the
+   reader is choosing between them, and versioned filenames differ near the end.
+   `.convert-form` is toggled with `hidden`, so it may not own a display. */
+.convert-form { flex-direction: column; gap: .3rem; }
+.convert-form:not([hidden]) { display: flex; }
+.convert-row {
+  display: flex;
+  align-items: flex-start;
+  gap: .4rem;
+  cursor: pointer;
+  line-height: 1.45;
+}
+.convert-row input { margin: .18rem 0 0; accent-color: var(--warn); }
+.convert-name { overflow-wrap: anywhere; }
+.convert-form .row { display: flex; gap: .4rem; margin-top: .25rem; }
+
+.convert-note {
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  margin: 0 0 .6rem;
+  padding: .5rem .6rem;
+  border-radius: var(--r-md);
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: .78rem;
+}
+
+/* Same reason as #reader-bar: it is toggled by `hidden`, so it cannot own a
+   display outright or the actions stand on the empty Library tab. */
+#refs-actions { flex-wrap: wrap; gap: .4rem; margin-bottom: .7rem; }
+#refs-actions:not([hidden]) { display: flex; }
+#folder-hint { flex-basis: 100%; font-size: .76rem; }
+
+#refs { list-style: none; margin: 0; padding: 0; }
+/* One track list, repeated by every row, is what makes this read as a table
+   while each row stays its own element for hover and selection. */
+#refs li {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) 3rem 2.4rem 2.6rem;
+  gap: .45rem;
+  align-items: center;
+  padding: .45rem .35rem;
+  border-radius: var(--r-sm);
+  border-bottom: 1px solid var(--line-soft);
+  transition: background .12s;
+}
+#refs li:hover { background: var(--raised); }
+#refs li.head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  font-size: .64rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+#refs li.head:hover { background: var(--surface); }
+#refs li.head span:nth-child(n+3) { text-align: right; }
+/* A reference with no paper in the library. Grey all through, so the rows
+   that are ready to read are the ones that carry colour. The key needs
+   naming explicitly: .key.clickable sets the accent and outranks the row. */
+#refs li.missing { color: var(--ink-faint); background: var(--canvas); }
+#refs li.missing .key.clickable {
+  color: var(--ink-faint);
+  text-decoration-color: var(--line);
+}
+#refs li.missing .key.clickable:hover { text-decoration-color: var(--ink-faint); }
+#refs li.missing .title { color: var(--ink-faint); opacity: .8; }
+#refs li.missing:hover { background: var(--raised); }
+#refs .col {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .72rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+#refs .col.dash { color: var(--line); }
+#refs .score { justify-self: end; }
+#refs .row-actions {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-top: .25rem;
+}
+#refs .num {
+  color: var(--ink-faint);
+  font-size: .76rem;
+  font-variant-numeric: tabular-nums;
+}
+#refs .entry { min-width: 0; line-height: 1.35; }
+#refs .key { font-size: .84rem; overflow-wrap: anywhere; }
+#refs .key.clickable {
+  cursor: pointer;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-line);
+  text-underline-offset: 2px;
+}
+#refs .key.clickable:hover { text-decoration-color: var(--accent); }
+#refs .title {
+  display: block;
+  color: var(--ink-faint);
+  font-size: .74rem;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#refs .manual { color: var(--warn); font-size: .72rem; white-space: nowrap; }
+
+/* badges ------------------------------------------------------------------ */
+
+.badge {
+  font-size: .64rem;
+  font-weight: 600;
+  padding: .1rem .38rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.b-verified, .b-supports, .b-ok      { background: var(--ok-bg);     color: var(--ok); }
+.b-not-found, .b-unrelated           { background: var(--bad-bg);    color: var(--bad); }
+.b-related                           { background: var(--warn-bg);   color: var(--warn); }
+.b-no-source, .b-missing, .b-unclear { background: var(--mute-bg);   color: var(--mute); }
+.b-no-claim                          { background: var(--accent-soft); color: var(--accent); }
+
+/* marker panel ------------------------------------------------------------ */
+
+.field { margin: .65rem 0; }
+.field .label, .field-label {
+  display: block;
+  font-size: .68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+  margin-bottom: .15rem;
+}
+.quote {
+  background: var(--raised);
+  border-left: 3px solid var(--line);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: .45rem .6rem;
+  margin: .25rem 0;
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.quote.passage.clickable {
+  cursor: pointer;
+  border-left-color: #d8b93f;
+  transition: background .12s, border-color .12s;
+}
+.quote.passage.clickable:hover { background: #fffdf4; border-left-color: var(--warn); }
+.quote.passage:not(.clickable) { opacity: .62; }
+.quote.passage.current { border-left-color: var(--ok); background: var(--ok-bg); }
+
+.siblings {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  flex-wrap: wrap;
+  margin: .5rem 0;
+  padding: .4rem .5rem;
+  border-radius: var(--r-md);
+  background: var(--accent-soft);
+}
+/* "citation 1 of 7" is a sentence, not a key, so it takes the text face --
+   the rule above says as much, and monospace made it wide enough to break
+   after "citation" whenever the reference key was long. It never breaks
+   mid-phrase now; if the row runs out of room the whole count wraps intact. */
+.siblings .count {
+  flex: 0 0 auto;
+  margin-right: auto;      /* still pushes prev/next to the right edge */
+  font-size: .75rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.siblings .step { min-width: 1.7rem; text-align: center; }
+.siblings .back {
+  font-weight: 600;
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.assess-btn { margin-top: .35rem; }
+/* A keyword match is not evidence. Dashed, so it never reads as one. */
+.quote.passage.maybe { border-left: 2px dashed var(--line); opacity: .92; }
+/* Offered, not taken: a citation nobody has paid to judge yet. */
+.offer { display: flex; align-items: center; gap: .6rem; margin: .6rem 0 .2rem; }
+.offer .hint { margin: 0; }
+
+.sites { list-style: none; margin: .3rem 0 0; padding: 0; }
+.sites li {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  border-bottom: 1px solid var(--line-soft);
+  transition: background .12s;
+}
+.sites li:hover { background: var(--accent-soft); }
+.sites .where {
+  color: var(--ink-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: .76rem;
+}
+.sites .snippet {
+  flex: 1;
+  color: var(--ink-soft);
+  font-size: .8rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+a.lookup {
+  display: inline-block;
+  margin: .15rem .3rem .15rem 0;
+  padding: .22rem .55rem;
+  font-size: .76rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--accent);
+  text-decoration: none;
+  transition: background .12s, border-color .12s;
+}
+a.lookup:hover { background: var(--accent-soft); border-color: var(--accent-line); }
+
+/* ----------------------------------------------------------------- chat */
+
+.chat-controls { display: flex; gap: .5rem; align-items: center; margin-bottom: .55rem; }
+#chat-target {
+  flex: 1;
+  padding: .3rem .4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: .82rem;
+}
+#chat-form textarea {
+  width: 100%;
+  padding: .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  resize: vertical;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: .85rem;
+}
+#chat-form textarea:focus, #chat-target:focus,
+#browse-path:focus, #setup input:not([readonly]):focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+#chat-form button { margin-top: .45rem; padding: .35rem 1.1rem; }
+#chat-out { margin-top: .85rem; }
+.answer {
+  white-space: pre-wrap;
+  background: var(--ok-bg);
+  border: 1px solid #cfe6d7;
+  border-radius: var(--r-md);
+  padding: .65rem .75rem;
+  font-size: .86rem;
+  line-height: 1.55;
+}
+#chat-out textarea {
+  width: 100%;
+  height: 11rem;
+  font-family: ui-monospace, monospace;
+  font-size: .74rem;
+  padding: .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+/* ------------------------------------------------------------- overlays */
+
+#busy, #setup, #browser {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 246, 248, .82);
+  backdrop-filter: blur(3px);
+}
+#busy.on, #setup:not([hidden]), #browser:not([hidden]) { display: flex; }
+
+#busy .card, #setup .card, #browser .card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3);
+  padding: 1.5rem 1.7rem;
+}
+#busy .card { display: flex; flex-direction: column; align-items: center; gap: .9rem; }
+#busy .what { font-size: .92rem; font-weight: 550; }
+#busy .detail { font-size: .78rem; color: var(--ink-faint); }
+
+#setup .card { width: min(38rem, 92%); }
+#setup .what, #browser .what {
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  margin-bottom: .7rem;
+}
+#setup input {
+  width: 100%;
+  padding: .42rem .55rem;
+  margin: .15rem 0 .6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-family: ui-monospace, monospace;
+  font-size: .76rem;
+  background: var(--surface);
+}
+#setup input[readonly] { background: var(--mute-bg); color: var(--ink-soft); }
+#setup-note { font-size: .78rem; margin: 0; }
+#setup .row, #browser .row { display: flex; gap: .5rem; margin-top: 1rem; }
+
+#browser .card {
+  width: min(44rem, 92%);
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+}
+#browse-jump { display: flex; gap: .35rem; margin: 0 0 .45rem; }
+#browse-path {
+  flex: 1;
+  padding: .38rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-family: ui-monospace, monospace;
+  font-size: .76rem;
+}
+#browse-shortcuts { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .5rem; }
+#browse-shortcuts button {
+  font-size: .73rem;
+  padding: .16rem .55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--ink-soft);
+}
+#browse-shortcuts button:hover { background: var(--accent-soft); border-color: var(--accent-line); }
+#browse-where {
+  display: block;
+  padding: .35rem .5rem;
+  margin-bottom: .5rem;
+  background: var(--mute-bg);
+  border-radius: var(--r-sm);
+  font-size: .72rem;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+#browse-list {
+  flex: 1;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+#browse-list li {
+  padding: .4rem .65rem;
+  cursor: pointer;
+  font-size: .84rem;
+  border-bottom: 1px solid var(--line-soft);
+  transition: background .1s;
+}
+#browse-list li:last-child { border-bottom: 0; }
+#browse-list li:hover { background: var(--accent-soft); }
+#browse-list li.up { color: var(--ink-faint); }
+#browse-list li.pdf { font-weight: 500; }
+
+/* --------------------------------------------------------------- states */
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+.spinner.small { width: 14px; height: 14px; border-width: 2px; }
+#busy .spinner { width: 32px; height: 32px; border-width: 4px; }
+.inline-load {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--ink-faint);
+  font-size: .84rem;
+  padding: .4rem 0;
+}
+
+.hint { color: var(--ink-faint); }
+.err { color: var(--bad); }
+code {
+  font-size: .86em;
+  background: var(--mute-bg);
+  padding: .05rem .28rem;
+  border-radius: 3px;
+}
+
+#crash {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: .7rem 1.1rem;
+  background: #6d1414;
+  color: #fff;
+  font-size: .8rem;
+  font-family: ui-monospace, monospace;
+  white-space: pre-wrap;
+  max-height: 40vh;
+  overflow-y: auto;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, .25);
+}
+#crash:not([hidden]) { display: block; }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-thumb {
+  background: #cfd5dc;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #b4bcc6; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ------------------------------------------------- instrument details */
+
+/* Anything the reader might copy, compare or cite is set in monospace: keys,
+   page numbers, paths. Prose stays in the text face. */
+#refs .key, .sites .where, #cited-page,
+#browse-list li.pdf {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .78rem;
+  letter-spacing: -.01em;
+}
+#refs .num {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .72rem;
+  color: var(--accent);
+  opacity: .75;
+}
+
+/* A dot before a badge repeats the status as shape, not only as colour. */
+.badge::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: .32rem;
+  vertical-align: .5px;
+  background: currentColor;
+}
+
+.dropzone::before {
+  content: "";
+  position: absolute;
+  inset: -40% -10% auto;
+  height: 70%;
+  background: radial-gradient(ellipse at 50% 0,
+              rgba(47, 93, 138, .10), transparent 70%);
+  pointer-events: none;
+}
+
+/* Tabs read as a segmented control rather than three words. */
+#tabs button.active { background: var(--surface); }
+
+/* The pane divider gets a hairline of accent while dragging. */
+#splitter.dragging { background: var(--accent); }
+#splitter.dragging::after { background: #fff; opacity: .9; }
+
+/* Focus is visible everywhere, not only on text fields.
+   Two colours because one cannot serve both surfaces: --glow is 6.3:1 on the
+   dark bar but only 2.7:1 on the canvas, under the 3:1 a focus ring needs to
+   be seen at all. The accent carries the light side. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: var(--r-sm);
+}
+header :focus-visible { outline-color: var(--glow); }
+
+/* ---------------------------------------------------- assessment card */
+
+.verdict-head {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex-wrap: wrap;
+  margin: .2rem 0 .5rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--line-soft);
+}
+.verdict-head code { font-size: .76rem; }
+.card-body .field:first-of-type { margin-top: .5rem; }
+
+/* 0 means remove the citation and 5 means it is doing its job, so the scale
+   is worth reading at a glance. Colour carries it; the number states it. */
+.score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .1rem;
+  padding: .16rem .5rem;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+.score strong { font-size: 1rem; font-weight: 700; line-height: 1; }
+.score .outof { font-size: .68rem; opacity: .7; }
+
+/* In a list the score is a disc, not a pill.
+ *
+ * A pill baseline-aligned inside a flex row drifts as soon as the text beside
+ * it wraps to a second line: the baseline it aligns to is the first line's,
+ * and the row is twice as tall. A fixed disc centred on its own axes cannot
+ * drift, and "/5" is redundant once every disc is the same size. */
+.score.chip {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.score.chip strong { font-size: .82rem; line-height: 1; }
+.score.chip .outof { display: none; }
+/* Argued for. The score stands -- the reader gave the model something it did
+   not have -- but it may not pass for one reached without being asked. A dot
+   on the rim, not a colour: the colour is the verdict and is not in question. */
+.score.chip.argued { position: relative; overflow: visible; }
+.score.chip.argued::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: .42rem;
+  height: .42rem;
+  border-radius: 50%;
+  background: var(--ink-soft);
+  border: 1.5px solid var(--surface);
+}
+.score-good { background: var(--ok-bg);   color: var(--ok);   border-color: var(--ok-line); }
+.score-fair { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-line); }
+.score-weak { background: #ffedd5;        color: #9a3412;     border-color: #fac9a4; }
+.score-bad  { background: var(--bad-bg);  color: var(--bad);  border-color: var(--bad-line); }
+/* Not valued. Deliberately colourless: it is the absence of a judgement, and
+   dressing it in one of the four status hues would imply one. Sized like the
+   others so a column of scores stays a straight line. */
+.score-nv {
+  background: var(--mute-bg);
+  color: var(--mute);
+  border-color: var(--line);
+  border-style: dashed;
+}
+.score-nv strong { font-size: .74rem; font-weight: 600; }
+.score-nv .outof { display: none; }
+/* One letter, which needs no help to centre: it takes the disc's own type and
+   lands on the middle. "NV" could not. Text is centred by advance width, and
+   V's ink overhangs its advance box to the right, so the pair sat half a pixel
+   right of the circle however the tracking was tuned; it also had to shrink to
+   .6rem to fit, leaving it smaller than every digit beside it. */
+
+.other-passages { margin-top: .7rem; }
+.other-passages summary {
+  cursor: pointer;
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+  padding: .2rem 0;
+}
+.other-passages summary:hover { color: var(--ink-soft); }
+.other-passages[open] summary { margin-bottom: .3rem; }
+
+/* The library shows a reference's weakest score and its length. */
+.score.chip { padding: .06rem .38rem; }
+.score.chip strong { font-size: .78rem; }
+.score.chip .outof { font-size: .6rem; }
+
+
+/* --------------------------------------------------------------- search */
+
+/* The search box is a tool, not a fixture: a reader who is reading is not
+   searching, and two permanent boxes said otherwise. The lens stays, the row
+   arrives underneath it when asked. */
+/* Neither of these may state a display of its own. `hidden` is a user-agent
+   rule, and any author rule beats it whatever its specificity, so `display:
+   flex` here left the row standing open however often the JS set .hidden.
+   They claim their display only when shown, as #setup and #browser do. */
+#reader-bar {
+  flex: 0 0 auto;
+  gap: .5rem;
+  align-items: center;
+  padding: .5rem .85rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+#reader-bar .spacer { flex: 1; }
+.findrow {
+  flex: 0 0 auto;
+  gap: .35rem;
+  align-items: center;
+  padding: .4rem .8rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+#reader-bar:not([hidden]), .findrow:not([hidden]) { display: flex; }
+/* Icon only, so it is sized by its glyph rather than by absent text, and it
+   holds a lit state: with the row closed there is nothing else to say the
+   search is still standing. */
+.lens {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: .22rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--raised);
+  color: var(--ink-faint);
+  line-height: 1;
+}
+.lens:hover { background: var(--accent-soft); border-color: var(--accent-line); }
+.lens.on {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+#find-manuscript, #find-cited {
+  flex: 1;
+  min-width: 6rem;
+  max-width: 22rem;
+  padding: .28rem .55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: .8rem;
+}
+#find-cited { max-width: 14rem; }
+#find-manuscript:focus, #find-cited:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.findcount {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: .72rem;
+  color: var(--ink-faint);
+  min-width: 3.5rem;
+  white-space: nowrap;
+}
+.findrow button, #reader-bar button:not(.lens),
+#cited-bar button:not(#cited-close):not(.lens) {
+  border: 1px solid var(--line);
+  background: var(--raised);
+  border-radius: var(--r-sm);
+  padding: .16rem .4rem;
+  font-size: .74rem;
+  line-height: 1;
+}
+.findrow button:hover, #reader-bar button:not(.lens):hover,
+#cited-bar button:not(#cited-close):not(.lens):hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+/* A search hit is distinct from evidence: evidence is amber, search is blue,
+   and the one you are standing on is filled. */
+.find-hit {
+  position: absolute;
+  background: rgba(96, 165, 250, .30);
+  outline: 1.5px solid rgba(37, 99, 235, .75);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.find-hit.current { background: rgba(96, 165, 250, .55); outline-color: var(--accent); }
+
+/* --------------------------------------------------------- re-assessment */
+
+.revision { margin-top: .8rem; }
+.revision-form textarea {
+  width: 100%;
+  margin-top: .4rem;
+  padding: .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-family: inherit;
+  font-size: .84rem;
+  resize: vertical;
+}
+.revision-form .row { display: flex; gap: .4rem; margin-top: .4rem; }
+.revision-note .quote { border-left-color: var(--accent); background: var(--accent-soft); }
+
+/* A scored marker is coloured by its score. The status colours stay as the
+   first thing you see, before any judgement has landed. */
+.marker.s-good { background: rgba(31, 122, 61, .30);  box-shadow: 0 0 0 1px rgba(31,122,61,.6); }
+.marker.s-fair { background: rgba(138, 97, 0, .26);   box-shadow: 0 0 0 1px rgba(138,97,0,.55); }
+.marker.s-weak { background: rgba(154, 85, 24, .26);  box-shadow: 0 0 0 1px rgba(154,85,24,.55); }
+.marker.s-bad  { background: rgba(165, 34, 34, .32);  box-shadow: 0 0 0 1px rgba(165,34,34,.7); }
+
+/* ------------------------------------------------------------------ tour */
+/* The layer takes every click, so nothing underneath is pressed by accident
+   mid-tour. Above the busy overlay, below the crash bar: a crash during the
+   tour still has to be readable. */
+.tour { position: fixed; inset: 0; z-index: 40; }
+/* One box over the element, and a shadow wide enough to dim the rest. */
+.tour-hole {
+  position: fixed;
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, .55);
+  outline: 2px solid var(--glow);
+  /* Drawn inside the box: an outline sits outside it, and at the window's
+     edge that side was off screen. */
+  outline-offset: -2px;
+  pointer-events: none;
+  transition: left .15s, top .15s, width .15s, height .15s;
+}
+.tour.tour-centre {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, .55);
+}
+.tour-card {
+  position: fixed;
+  width: min(340px, calc(100vw - 24px));
+  padding: 1rem 1.1rem .9rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-3);
+}
+.tour-centre .tour-card { position: static; }
+.tour-count { font-size: .78rem; color: var(--ink-faint); }
+.tour-title {
+  margin: .2rem 0 .45rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  /* A heading here, not one of the rail's small-caps section labels. */
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
+}
+.tour-text { margin: 0 0 1rem; color: var(--ink-soft); font-size: .9rem; line-height: 1.5; }
+.tour-row { display: flex; align-items: center; gap: .5rem; }
+.tour-row button {
+  padding: .38rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+.tour-row button:hover { border-color: var(--accent-line); }
+.tour-skip { margin-right: auto; border-color: transparent !important; color: var(--ink-faint); }
+.tour-row .tour-next { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tour-row .tour-next:hover { background: var(--accent-deep); border-color: var(--accent-deep); }
+
+body:not(.has-manuscript) #tour-open { display: none; }

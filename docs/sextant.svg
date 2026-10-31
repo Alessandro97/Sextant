@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36.51" width="34" height="51.7" fill="none" stroke="#2f5d8a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Sextant">
+  <title>Sextant</title>
+  <!-- The box extends below the artwork so the mark lines up with a heading.
+       GitHub strips author CSS, so vertical-align cannot be set; align=middle
+       centres the box on the baseline plus half the x-height, which is below
+       a heading's optical centre. The padding is calibrated, not guessed:
+       measured against a rendering of the real README through GitHub's own
+       markdown API. The favicon is square and unpadded, because a browser
+       tab centres the whole box. -->
+  <path d="M2.9,19.4 L21,19.4" stroke-width="1.5" opacity=".8"/>
+  <path d="M18.81,15.53 A13.4,13.4 0 0 0 10.92,6.62"/>
+  <path d="M6.4,3.8 L6.4,8.6 M4,6.2 L8.8,6.2 M4.96,4.76 L7.84,7.64 M7.84,4.76 L4.96,7.64" stroke-width="1.2"/>
+  <circle cx="19.2" cy="19.4" r="1.25" fill="#2f5d8a" stroke="none"/>
+</svg>

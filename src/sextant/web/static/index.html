@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sextant</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <div id="crash" hidden></div>
+  <header>
+    <button id="home" class="brand" type="button" title="Back to the start">Sextant</button>
+    <button id="browse-open" class="filebtn" type="button">Open manuscript</button>
+    <div id="effort" class="effort" hidden role="group" aria-label="Assessment effort">
+      <button type="button" data-effort="low"  title="Four passages per citation. Cheapest, and enough to sort obviously wrong citations from plausible ones.">Low</button>
+      <button type="button" data-effort="mid"  title="Ten wider passages, always including the abstract. The default.">Mid</button>
+      <button type="button" data-effort="high" title="The whole cited paper, when it fits. Roughly ten times the cost of Low per citation.">High</button>
+    </div>
+    <button id="assess-all" class="filebtn" type="button" hidden></button>
+    <button id="reassess" class="filebtn" type="button" hidden
+            title="Throw away every judgement for this manuscript. Nothing is
+                   re-run: Assess starts them again when you are ready.">Discard judgements</button>
+    <span id="counts" class="counts"></span>
+    <span id="assessing" class="counts" hidden></span>
+    <span id="status" class="status"></span>
+    <button id="tour-open" class="filebtn" type="button" aria-label="Show the tour"
+            title="Show the tour again">?</button>
+  </header>
+
+  <main>
+    <section id="reader-pane">
+      <div id="reader-bar" hidden>
+        <strong id="filename"></strong>
+        <span class="spacer"></span>
+        <button id="find-manuscript-toggle" class="lens" type="button"
+                aria-expanded="false" aria-label="Find in manuscript"
+                title="Find in manuscript">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.4" fill="none"
+                    stroke="currentColor" stroke-width="1.6"/>
+            <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor"
+                  stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div id="find-manuscript-row" class="findrow" hidden>
+        <input id="find-manuscript" type="search" placeholder="Find in manuscript">
+        <span id="find-manuscript-count" class="findcount"></span>
+        <button id="find-manuscript-prev" aria-label="Previous match"
+                title="Previous (Shift+Enter)">&uarr;</button>
+        <button id="find-manuscript-next" aria-label="Next match"
+                title="Next (Enter)">&darr;</button>
+      </div>
+      <section id="reader">
+      <!-- What the tool does, on a loop, standing on its own: a sentence in
+           your manuscript reaches the exact passage in the paper it cites.
+           The highlight is the same amber the reader will meet on a real
+           page, so the promise and the product match. -->
+      <figure class="preview">
+        <svg class="demo" viewBox="0 0 460 150" role="img"
+             aria-label="A cited sentence in a manuscript resolving to the exact
+                         passage in the paper it cites">
+          <g class="demo-paper">
+            <rect class="demo-sheet" x="6" y="10" width="176" height="130" rx="7"/>
+            <rect class="demo-line" x="22" y="30" width="132" height="5" rx="2.5"/>
+            <rect class="demo-line" x="22" y="44" width="144" height="5" rx="2.5"/>
+            <rect class="demo-claim" x="22" y="70" width="112" height="6" rx="3"/>
+            <rect class="demo-marker" x="140" y="68" width="18" height="10" rx="2.5"/>
+            <rect class="demo-line" x="22" y="90" width="138" height="5" rx="2.5"/>
+            <rect class="demo-line" x="22" y="104" width="96" height="5" rx="2.5"/>
+          </g>
+
+          <g class="demo-paper">
+            <rect class="demo-sheet" x="278" y="10" width="176" height="130" rx="7"/>
+            <rect class="demo-line" x="294" y="30" width="128" height="5" rx="2.5"/>
+            <rect class="demo-line" x="294" y="44" width="142" height="5" rx="2.5"/>
+            <rect class="demo-line" x="294" y="58" width="118" height="5" rx="2.5"/>
+            <rect class="demo-hit" x="294" y="66" width="130" height="14" rx="2"/>
+            <rect class="demo-found" x="294" y="70" width="126" height="6" rx="3"/>
+            <rect class="demo-line" x="294" y="90" width="134" height="5" rx="2.5"/>
+            <rect class="demo-line" x="294" y="104" width="88" height="5" rx="2.5"/>
+          </g>
+
+          <!-- Last, so it paints over both sheets: SVG has no z-index, and
+               declared earlier the second page buried the end of it. It lands
+               on the left edge of the passage, which is the whole claim. -->
+          <path class="demo-arc" pathLength="1" fill="none"
+                d="M160 73 C 200 14, 254 14, 294 73"/>
+          <circle class="demo-spark" r="3.4"/>
+        </svg>
+      </figure>
+
+      <div id="drop" class="dropzone">
+        <button id="open-document" class="bigbtn" type="button">Open document</button>
+        <p class="hint">
+          Or drop a PDF anywhere on this page.
+        </p>
+        <p class="hint">
+          Works with LaTeX PDFs and Word documents that number their citations.
+        </p>
+      </div>
+      </section>
+    </section>
+
+    <div id="splitter" hidden title="Drag to resize · double-click to reset"></div>
+    <section id="cited" hidden>
+      <div id="cited-bar">
+        <strong id="cited-title"></strong>
+        <span id="cited-sub" class="hint"></span>
+        <span class="spacer"></span>
+        <button id="find-cited-toggle" class="lens" type="button"
+                aria-expanded="false" aria-label="Find in this paper"
+                title="Find in this paper">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.4" fill="none"
+                    stroke="currentColor" stroke-width="1.6"/>
+            <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor"
+                  stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <span id="cited-page"></span>
+        <button id="cited-close" aria-label="Close the cited paper"
+                title="Close (Esc)">&times;</button>
+      </div>
+      <div id="find-cited-row" class="findrow" hidden>
+        <input id="find-cited" type="search" placeholder="Find in this paper">
+        <span id="find-cited-count" class="findcount"></span>
+        <button id="find-cited-prev" aria-label="Previous match" title="Previous">&uarr;</button>
+        <button id="find-cited-next" aria-label="Next match" title="Next">&darr;</button>
+      </div>
+      <div id="cited-body"></div>
+    </section>
+
+    <aside id="rail">
+      <nav id="tabs">
+        <button data-tab="refs" class="active">References</button>
+        <button data-tab="marker">Details</button>
+        <button data-tab="chat">Ask</button>
+      </nav>
+
+      <div id="tab-refs" class="tab active">
+        <p id="refs-empty" class="hint">
+          Open a manuscript and the papers it cites appear here.
+        </p>
+        <div id="refs-actions" hidden>
+          <button id="update">Update from folder</button>
+          <label class="filebtn small">
+            Add papers<input type="file" id="addfiles" accept=".pdf,.doc,.docx,.rtf,.odt"
+                             multiple hidden>
+          </label>
+          <button id="fetch-all"></button>
+          <div id="folder-hint" class="hint"></div>
+        </div>
+        <ul id="refs"></ul>
+      </div>
+
+      <div id="tab-marker" class="tab">
+        <p class="hint">Select a citation in the manuscript.</p>
+      </div>
+
+      <div id="tab-chat" class="tab">
+        <div class="chat-controls">
+          <select id="chat-target"><option value="">The manuscript</option></select>
+          <div id="backend" class="hint"></div>
+        </div>
+        <form id="chat-form">
+          <textarea id="question" rows="3" placeholder="Ask about this paper"></textarea>
+          <button type="submit">Ask</button>
+        </form>
+        <div id="chat-out"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="browser" hidden>
+    <div class="card">
+      <div class="what">Choose a manuscript</div>
+      <form id="browse-jump">
+        <input id="browse-path" type="text"
+               placeholder="Paste a folder or PDF path">
+        <button type="submit">Go</button>
+      </form>
+      <div id="browse-shortcuts"></div>
+      <code id="browse-where"></code>
+      <ul id="browse-list"></ul>
+      <p class="hint">Its folder becomes the root; the library goes in
+        <code>refs/</code> beside it.</p>
+      <div class="row"><button id="browse-cancel">Cancel</button></div>
+    </div>
+  </div>
+
+  <div id="setup" hidden>
+    <div class="card">
+      <div class="what" id="setup-what">Ready to open</div>
+
+      <label class="field-label" for="path">Manuscript</label>
+      <input id="path" type="text" readonly>
+
+      <label class="field-label" for="refsdir">References folder</label>
+      <input id="refsdir" type="text" placeholder="refs/ beside the manuscript">
+      <p class="hint" id="setup-note"></p>
+
+      <label class="toggle" for="auto">
+        <input type="checkbox" id="auto" checked> Fetch the references not yet tried
+      </label>
+      <p class="hint">Uncheck to open without touching the network. The References
+        tab can fetch them afterwards.</p>
+
+      <div class="row">
+        <button id="setup-go">Go</button>
+        <button id="setup-back">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="busy">
+    <div class="card">
+      <div class="spinner"></div>
+      <div class="what" id="busy-what">Working…</div>
+      <div class="detail" id="busy-detail"></div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+  <script src="/static/tour.js"></script>
+</body>
+</html>
